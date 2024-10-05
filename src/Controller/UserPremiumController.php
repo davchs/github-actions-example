@@ -27,7 +27,7 @@ class UserPremiumController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $user->togglePremiumStatus();
             $userRepository->save($user, true);
-            $this->addFlash('success', 'Premium status updated successfully.');
+            $user->isPremium() ? $this->addFlash('success', 'User is now premium.') : $this->addFlash('success', 'User is no longer premium.');
 
             return $this->redirectToRoute('app_user_toggle_premium', ['id' => $user->getId()]);
         }

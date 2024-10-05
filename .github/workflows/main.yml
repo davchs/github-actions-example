@@ -10,3 +10,14 @@ on:
   pull_request:
     branches:
       - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  APP_ENV: test
+  XDEBUG_MODE: 'off'
