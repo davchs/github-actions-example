@@ -25,7 +25,7 @@ class User
         $this->id = (string) Uuid::v4();
     }
 
-    public function getId(): ?Uuid
+    public function getId(): Uuid
     {
         return Uuid::fromString($this->id);
     }

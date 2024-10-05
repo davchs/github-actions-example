@@ -8,9 +8,9 @@ modules:
     enabled:
         - WebDriver:
               browser: chrome
-              url: 'http://localhost:8383'
+              url: 'http://nginx'
               host: 'selenium'
-              port: 4445
+              port: 4444
               window_size: maximize
               restart: true
               capabilities:
@@ -21,6 +21,13 @@ modules:
                           - '--no-sandbox'
                           - '--ignore-certificate-errors'
                   acceptInsecureCerts: true
+
+              env:
+                  - APP_ENV=test
+        - Db:
+            dsn: 'pgsql:host=database;dbname=symfony'
+            user: 'user'
+            password: 'password'
 
 
 # Add Codeception\Step\Retry trait to AcceptanceTester to enable retries

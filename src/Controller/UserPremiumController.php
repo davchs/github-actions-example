@@ -12,7 +12,7 @@ use Symfony\Component\Uid\Uuid;
 
 class UserPremiumController extends AbstractController
 {
-    #[Route('/user/{id}/toggle-premium', name: 'app_user_toggle_premium')]
+    #[Route('/user/{id}', name: 'app_user_toggle_premium')]
     public function togglePremium(Request $request, string $id, UserRepository $userRepository): Response
     {
         $user = $userRepository->find(Uuid::fromString($id));
