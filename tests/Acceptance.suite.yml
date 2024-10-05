@@ -5,26 +5,32 @@
 
 actor: AcceptanceTester
 modules:
-    enabled:
-        - WebDriver:
-              browser: chrome
-              url: 'http://localhost:8383'
-              host: 'selenium'
-              port: 4445
-              window_size: maximize
-              restart: true
-              capabilities:
-                  chromeOptions:
-                      args:
-                          - '--headless'
-                          - '--disable-gpu'
-                          - '--no-sandbox'
-                          - '--ignore-certificate-errors'
-                  acceptInsecureCerts: true
-
+  enabled:
+    - WebDriver:
+        browser: chrome
+        url: 'http://nginx'
+        host: 'selenium'
+        port: 4444
+        window_size: maximize
+        restart: true
+        capabilities:
+          chromeOptions:
+            args:
+              - '--headless'
+              - '--disable-gpu'
+              - '--no-sandbox'
+              - '--ignore-certificate-errors'
+          acceptInsecureCerts: true
+    - Db:
+        dsn: 'pgsql:host=database;dbname=symfony_test'
+        user: 'user'
+        password: 'password'
+        cleanup: true
+env:
+  APP_ENV: test
 
 # Add Codeception\Step\Retry trait to AcceptanceTester to enable retries
 step_decorators:
-    - Codeception\Step\ConditionalAssertion
-    - Codeception\Step\TryTo
-    - Codeception\Step\Retry
+  - Codeception\Step\ConditionalAssertion
+  - Codeception\Step\TryTo
+  - Codeception\Step\Retry

@@ -5,7 +5,6 @@ namespace App\Repository;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use Symfony\Component\Uid\Uuid;
 
 class UserRepository extends ServiceEntityRepository
 {
@@ -21,14 +20,5 @@ class UserRepository extends ServiceEntityRepository
         if ($flush) {
             $this->getEntityManager()->flush();
         }
-    }
-
-    public function find($id, $lockMode = null, $lockVersion = null): ?User
-    {
-        if (is_string($id)) {
-            $id = Uuid::fromString($id);
-        }
-
-        return parent::find($id, $lockMode, $lockVersion);
     }
 }

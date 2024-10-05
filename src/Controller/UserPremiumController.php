@@ -12,7 +12,7 @@ use Symfony\Component\Uid\Uuid;
 
 class UserPremiumController extends AbstractController
 {
-    #[Route('/user/{id}/toggle-premium', name: 'app_user_toggle_premium')]
+    #[Route('/user/{id}', name: 'app_user_toggle_premium')]
     public function togglePremium(Request $request, string $id, UserRepository $userRepository): Response
     {
         $user = $userRepository->find(Uuid::fromString($id));
@@ -27,7 +27,7 @@ class UserPremiumController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $user->togglePremiumStatus();
             $userRepository->save($user, true);
-            $this->addFlash('success', 'Premium status updated successfully.');
+            $user->isPremium() ? $this->addFlash('success', 'User is now premium.') : $this->addFlash('success', 'User is no longer premium.');
 
             return $this->redirectToRoute('app_user_toggle_premium', ['id' => $user->getId()]);
         }

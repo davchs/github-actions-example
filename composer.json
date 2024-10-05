@@ -81,8 +81,11 @@
     },
     "require-dev": {
         "codeception/codeception": "^5.1",
+        "codeception/module-asserts": "^3.0",
+        "codeception/module-db": "^3.1",
         "codeception/module-doctrine": "^3.1",
         "codeception/module-symfony": "^3.4",
+        "codeception/module-webdriver": "^4.0",
         "friendsofphp/php-cs-fixer": "^3.64",
         "symfony/maker-bundle": "^1.61",
         "symfony/stopwatch": "7.1.*",

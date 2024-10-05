@@ -3,6 +3,7 @@
 $finder = PhpCsFixer\Finder::create()
     ->in(__DIR__)
     ->exclude('var')
+    ->exclude('tests/Support/_generated')
     ->exclude('vendor');
 
 $config = new PhpCsFixer\Config();
@@ -12,7 +13,7 @@ return $config->setRules([
     'array_syntax' => ['syntax' => 'short'],
     'ordered_imports' => true,
     'no_unused_imports' => true,
-    'yoda_style' => false,
+    'yoda_style' => true,
     'phpdoc_order' => true,
     'phpdoc_summary' => false,
     'phpdoc_no_empty_return' => false,
