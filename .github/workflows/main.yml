@@ -97,3 +97,23 @@ jobs:
       - run: composer install
       - name: Run Psalm
         run: composer run psalm
+
+  unit-tests:
+    needs:
+      - php-cs-fixer
+      - psalm
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor/
+          key: "${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}"
+      - run: composer install
+      - name: Run Unit Tests
+        run: ./vendor/bin/codecept run Unit
