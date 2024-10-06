@@ -59,3 +59,41 @@ jobs:
       - run: npm install
       - name: Run Webpack Encore build
         run: npm run build
+
+  php-cs-fixer:
+    needs:
+      - composer
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor/
+          key: "${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}"
+      - run: composer install
+      - name: Run PHP-CS-Fixer
+        run: composer run cs-check
+
+  psalm:
+    needs:
+      - composer
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor/
+          key: "${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}"
+      - run: composer install
+      - name: Run Psalm
+        run: composer run psalm
