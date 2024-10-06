@@ -1,0 +1,84 @@
+name: Documentation
+
+on:
+  push:
+    branches: ["main"]
+
+concurrency:
+  group: "${{ github.ref }}-docs"
+  cancel-in-progress: true
+
+permissions:
+  id-token: write
+  pages: write
+  contents: read
+  actions: write
+
+env:
+  INSTANCE: 'documentation/gae'
+  ARTIFACT: 'webHelpGAE2-all.zip'
+  DOCKER_VERSION: '241.18775'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: spradio/sprad
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build docs using Writerside Docker builder
+        uses: JetBrains/writerside-github-action@v4
+        with:
+          instance: ${{ env.INSTANCE }}
+          artifact: ${{ env.ARTIFACT }}
+          docker-version: ${{ env.DOCKER_VERSION }}
+      - run: ls -l artifacts
+      - name: Save artifact with build results
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs
+          path: |
+            artifacts/${{ env.ARTIFACT }}
+            artifacts/report.json
+          retention-days: 7
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: docs
+          path: artifacts
+      - name: Test documentation
+        uses: JetBrains/writerside-checker-action@v1
+        with:
+          instance: ${{ env.INSTANCE }}
+
+  deploy:
+    environment:
+      name: documentation
+      url: https://docs.sprad.io
+    needs: [build, test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: docs
+          path: artifacts
+      - run: cd /home/runner/work/sprad/sprad/artifacts && ls -l
+      - name: Unzip artifact
+        run: unzip -O UTF-8 -qq 'artifacts/${{ env.ARTIFACT }}' -d dir
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      - name: Package and upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dir
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
