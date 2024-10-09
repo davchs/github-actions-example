@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<psalm resolveFromConfigFile="true"
+       cacheDirectory=".cache/"
+       errorLevel="5"
+       hideExternalErrors="true">
+    <projectFiles>
+        <directory name="src"/>
+        <ignoreFiles>
+            <directory name="tests"/>
+        </ignoreFiles>
+    </projectFiles>
+</psalm>

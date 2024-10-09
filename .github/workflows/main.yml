@@ -1,0 +1,275 @@
+name: Build, Test and Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+      - '[0-9]+.[0-9]+'
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  APP_ENV: test
+  XDEBUG_MODE: 'off'
+
+jobs:
+  composer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor/
+          key: "${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}"
+      - run: composer install
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Cache npm dependencies
+        uses: actions/cache@v4
+        with:
+          path: node_modules/
+          key: "${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}"
+      - name: Cache build artifacts
+        uses: actions/cache@v4
+        with:
+          path: public/build
+          key: "${{ runner.os }}-build-${{ hashFiles('public/build') }}"
+      - run: npm install
+      - name: Run Webpack Encore build
+        run: npm run build
+
+  php-cs-fixer:
+    needs:
+      - composer
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor/
+          key: "${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}"
+      - run: composer install
+      - name: Run PHP-CS-Fixer
+        run: composer run cs-check
+
+  psalm:
+    needs:
+      - composer
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor/
+          key: "${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}"
+      - run: composer install
+      - name: Run Psalm
+        run: composer run psalm
+
+  unit-tests:
+    needs:
+      - composer
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor/
+          key: "${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}"
+      - run: composer install
+      - name: Run Unit Tests
+        run: ./vendor/bin/codecept run Unit
+
+  functional-tests:
+    needs:
+      - composer
+    runs-on: ubuntu-latest
+    services:
+      database:
+        image: postgres:16
+        env:
+          POSTGRES_DB: symfony
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+        ports:
+          - "5432:5432"
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor/
+          key: "${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}"
+      - name: Setup environment
+        run: |
+          sed -i 's|database:5432|127.0.0.1:5432|g' .env
+          php bin/console doctrine:database:create --env=test
+          php bin/console doctrine:migrations:migrate --env=test --no-interaction
+      - name: Run Functional Tests
+        run: ./vendor/bin/codecept run Functional
+
+  acceptance-tests:
+    needs:
+      - build
+      - composer
+    runs-on: ubuntu-latest
+    services:
+      nginx:
+        image: nginx:alpine
+        volumes:
+          - ${{ github.workspace }}:/var/www/html
+        ports:
+          - 80:80
+        options: --name nginx
+      fpm:
+        image: ghcr.io/davchs/github-actions-example/fpm:latest
+        credentials:
+          username: ${{ vars.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+        volumes:
+          - ${{ github.workspace }}:/var/www/html
+        options: --name fpm
+      database:
+        image: postgres:16
+        env:
+          POSTGRES_DB: symfony
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+        ports:
+          - "5432:5432"
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          --name database
+      selenium:
+        image: selenium/standalone-chromium:127.0
+        ports:
+          - "4444:4444"
+        options: --shm-size=4g --name selenium
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor/
+          key: "${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}"
+      - name: Cache npm dependencies
+        uses: actions/cache@v4
+        with:
+          path: node_modules/
+          key: "${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}"
+      - name: Cache build artifacts
+        uses: actions/cache@v4
+        with:
+          path: public/build
+          key: "${{ runner.os }}-build-${{ hashFiles('public/build') }}"
+      - name: Setup environment
+        run: |
+          docker cp .docker/nginx/default.conf nginx:/etc/nginx/conf.d/default.conf
+          docker exec nginx nginx -s reload
+          sed -i 's|APP_ENV=dev|APP_ENV=test|g' .env
+          sed -i 's|database|127.0.0.1|g' .env
+          sed -i 's|database|127.0.0.1|g' tests/Acceptance.suite.yml
+          sed -i 's|selenium|127.0.0.1|g' tests/Acceptance.suite.yml
+          bin/console doctrine:database:create --env=test &&
+          bin/console doctrine:migrations:migrate --no-interaction -e test
+      - name: Run acceptance tests
+        run: |
+          sed -i 's|127.0.0.1|database|g' .env
+          ./vendor/bin/codecept build
+          ./vendor/bin/codecept run Acceptance
+      - uses: actions/upload-artifact@v4
+        if: ${{ failure() }}
+        with:
+          name: "${{ github.job }}"
+          retention-days: 1
+          path: |-
+            tests/_output
+            var/log
+  
+  deploy:
+    if: ${{ github.ref_type == 'tag' || github.ref == 'refs/heads/develop' }}
+    needs:
+      - php-cs-fixer
+      - psalm
+      - unit-tests
+      - functional-tests
+      - acceptance-tests
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.ref_type == 'tag' && 'production' || 'development' }}
+      url: ${{ github.ref_type == 'tag' && 'https://davchs.dev' || 'https://dev.davchs.dev' }}
+    timeout-minutes: 60
+    env:
+      APP_ENV: prod
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+      - uses: actions/download-artifact@v4
+      - name: Install SSH Key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.PRIVATE_SSH_KEY }}
+          known_hosts: ${{ vars.TARGET_HOST }}
+      - run: |
+          echo ${{ vars.USER }}
+          echo ${{ vars.TARGET_PATH }} 
+          echo ${{ vars.TARGET_HOST }}

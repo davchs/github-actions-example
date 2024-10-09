@@ -1,0 +1,47 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Toggle Premium Status{% endblock %}
+
+{% block body %}
+    <div class="min-h-screen bg-gray-100 py-6 flex flex-col justify-center sm:py-12">
+        <div class="relative py-3 sm:max-w-xl sm:mx-auto">
+            <div class="absolute inset-0 bg-gradient-to-r from-cyan-400 to-light-blue-500 shadow-lg transform -skew-y-6 sm:skew-y-0 sm:-rotate-6 sm:rounded-3xl"></div>
+            <div class="relative px-4 py-10 bg-white shadow-lg sm:rounded-3xl sm:p-20">
+                <div class="max-w-md mx-auto">
+                    <div>
+                        <h1 class="text-2xl font-semibold mb-6">User Premium Status</h1>
+                    </div>
+                    <div class="divide-y divide-gray-200">
+                        <div class="py-8 text-base leading-6 space-y-4 text-gray-700 sm:text-lg sm:leading-7">
+                            <p><span class="font-bold">User ID:</span> {{ user.id }}</p>
+                            <p><span class="font-bold">Email:</span> {{ user.email }}</p>
+                            <p><span class="font-bold">Current Status:</span>
+                                {% if user.isPremium %}
+                                    <span class="text-green-600 font-semibold">Premium</span>
+                                {% else %}
+                                    <span class="text-red-600 font-semibold">Standard</span>
+                                {% endif %}
+                            </p>
+
+                            {% for label, messages in app.flashes %}
+                                {% for message in messages %}
+                                    <div class="bg-{{ label == 'success' ? 'green' : 'red' }}-100 border border-{{ label == 'success' ? 'green' : 'red' }}-400 text-{{ label == 'success' ? 'green' : 'red' }}-700 px-4 py-3 rounded relative" role="alert">
+                                        <span class="block sm:inline">{{ message }}</span>
+                                    </div>
+                                {% endfor %}
+                            {% endfor %}
+
+                            <div class="mt-8">
+                                {{ form_start(form) }}
+                                <div class="flex items-center justify-center">
+                                    {{ form_widget(form.togglePremium, {'attr': {'class': 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline'}}) }}
+                                </div>
+                                {{ form_end(form) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
