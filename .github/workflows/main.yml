@@ -237,3 +237,39 @@ jobs:
           path: |-
             tests/_output
             var/log
+
+  deploy:
+    if: ${{ github.ref_type == 'tag' || github.ref == 'refs/heads/develop' }}
+    needs:
+      - php-cs-fixer
+      - psalm
+      - unit-tests
+      - functional-tests
+      - acceptance-tests
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.ref_type == 'tag' && 'production' || 'development' }}
+      url: ${{ github.ref_type == 'tag' && 'https://davchs.dev' || 'https://dev.davchs.dev' }}
+    timeout-minutes: 60
+    env:
+      APP_ENV: prod
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+      - uses: actions/download-artifact@v4
+      - name: Install SSH Key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.PRIVATE_SSH_KEY }}
+          known_hosts: ${{ vars.TARGET_HOST }}
+      - run: |
+          echo ${{ vars.USER }}
+          echo ${{ vars.TARGET_PATH }} 
+          echo ${{ vars.TARGET_HOST }}
