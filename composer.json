@@ -4,17 +4,24 @@
     "minimum-stability": "stable",
     "prefer-stable": true,
     "require": {
-        "php": ">=8.2",
+        "php": "8.3.*",
         "ext-ctype": "*",
         "ext-iconv": "*",
+        "doctrine/dbal": "^3",
+        "doctrine/doctrine-bundle": "^2.13",
+        "doctrine/doctrine-migrations-bundle": "^3.3",
+        "doctrine/orm": "^3.2",
         "symfony/console": "7.1.*",
         "symfony/dotenv": "7.1.*",
         "symfony/flex": "^2",
+        "symfony/form": "7.1.*",
         "symfony/framework-bundle": "7.1.*",
         "symfony/runtime": "7.1.*",
+        "symfony/security-bundle": "7.1.*",
+        "symfony/twig-bundle": "7.1.*",
+        "symfony/uid": "7.1.*",
+        "symfony/webpack-encore-bundle": "^2.2",
         "symfony/yaml": "7.1.*"
-    },
-    "require-dev": {
     },
     "config": {
         "allow-plugins": {
@@ -45,6 +52,13 @@
         "symfony/polyfill-php82": "*"
     },
     "scripts": {
+        "cs-fix": "php-cs-fixer fix --config=php-cs-fixer.config.php",
+        "cs-check": "php-cs-fixer fix --dry-run --diff --config=php-cs-fixer.config.php",
+        "psalm": "psalm",
+        "code-quality": [
+            "@cs-check",
+            "@psalm"
+        ],
         "auto-scripts": {
             "cache:clear": "symfony-cmd",
             "assets:install %PUBLIC_DIR%": "symfony-cmd"
@@ -64,5 +78,18 @@
             "allow-contrib": false,
             "require": "7.1.*"
         }
+    },
+    "require-dev": {
+        "codeception/codeception": "^5.1",
+        "codeception/module-asserts": "^3.0",
+        "codeception/module-db": "^3.1",
+        "codeception/module-doctrine": "^3.1",
+        "codeception/module-symfony": "^3.4",
+        "codeception/module-webdriver": "^4.0",
+        "friendsofphp/php-cs-fixer": "^3.64",
+        "symfony/maker-bundle": "^1.61",
+        "symfony/stopwatch": "7.1.*",
+        "symfony/web-profiler-bundle": "7.1.*",
+        "vimeo/psalm": "^5.22"
     }
 }
