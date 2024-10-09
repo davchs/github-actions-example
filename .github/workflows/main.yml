@@ -19,7 +19,6 @@ permissions:
 
 env:
   APP_ENV: test
-  XDEBUG_MODE: 'off'
 
 jobs:
   composer:
@@ -129,11 +128,6 @@ jobs:
           POSTGRES_PASSWORD: password
         ports:
           - "5432:5432"
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
     steps:
       - uses: actions/checkout@v4
       - name: Set up PHP
@@ -147,7 +141,7 @@ jobs:
           key: "${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}"
       - name: Setup environment
         run: |
-          sed -i 's|database:5432|127.0.0.1:5432|g' .env
+          echo "127.0.0.1 database" | sudo tee -a /etc/hosts
           php bin/console doctrine:database:create --env=test
           php bin/console doctrine:migrations:migrate --env=test --no-interaction
       - name: Run Functional Tests
@@ -165,7 +159,6 @@ jobs:
           - ${{ github.workspace }}:/var/www/html
         ports:
           - 80:80
-        options: --name nginx
       fpm:
         image: ghcr.io/davchs/github-actions-example/fpm:latest
         credentials:
@@ -173,7 +166,6 @@ jobs:
           password: ${{ secrets.DOCKER_TOKEN }}
         volumes:
           - ${{ github.workspace }}:/var/www/html
-        options: --name fpm
       database:
         image: postgres:16
         env:
@@ -182,17 +174,11 @@ jobs:
           POSTGRES_PASSWORD: password
         ports:
           - "5432:5432"
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-          --name database
       selenium:
         image: selenium/standalone-chromium:127.0
         ports:
           - "4444:4444"
-        options: --shm-size=4g --name selenium
+        options: --shm-size=4g
     steps:
       - uses: actions/checkout@v4
       - name: Set up PHP
@@ -219,14 +205,11 @@ jobs:
           docker cp .docker/nginx/default.conf nginx:/etc/nginx/conf.d/default.conf
           docker exec nginx nginx -s reload
           sed -i 's|APP_ENV=dev|APP_ENV=test|g' .env
-          sed -i 's|database|127.0.0.1|g' .env
-          sed -i 's|database|127.0.0.1|g' tests/Acceptance.suite.yml
-          sed -i 's|selenium|127.0.0.1|g' tests/Acceptance.suite.yml
+          echo "127.0.0.1 nginx database selenium" | sudo tee -a /etc/hosts
           bin/console doctrine:database:create --env=test &&
           bin/console doctrine:migrations:migrate --no-interaction -e test
       - name: Run acceptance tests
         run: |
-          sed -i 's|127.0.0.1|database|g' .env
           ./vendor/bin/codecept build
           ./vendor/bin/codecept run Acceptance
       - uses: actions/upload-artifact@v4
@@ -270,6 +253,11 @@ jobs:
           key: ${{ secrets.PRIVATE_SSH_KEY }}
           known_hosts: ${{ vars.TARGET_HOST }}
       - run: |
+          composer install --no-dev --optimize-autoloader
+          npm install
+          npm run build
+#          rsync, CodeDeploy, etc.
+#          Variables by environment
           echo ${{ vars.USER }}
           echo ${{ vars.TARGET_PATH }} 
           echo ${{ vars.TARGET_HOST }}
