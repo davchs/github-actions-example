@@ -1,4 +1,4 @@
-name: Documentation
+name: Build, Test and Deploy - Documentation
 
 on:
   push:
@@ -24,9 +24,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          repository: spradio/sprad
-          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Build docs using Writerside Docker builder
         uses: JetBrains/writerside-github-action@v4
         with:
@@ -61,7 +58,7 @@ jobs:
   deploy:
     environment:
       name: documentation
-      url: https://docs.sprad.io
+      url: ${{ steps.deployment.outputs.page_url }}
     needs: [build, test]
     runs-on: ubuntu-latest
     steps:
@@ -70,7 +67,7 @@ jobs:
         with:
           name: docs
           path: artifacts
-      - run: cd /home/runner/work/sprad/sprad/artifacts && ls -l
+      - run: cd ${{ github.workspace }}/artifacts && ls -l
       - name: Unzip artifact
         run: unzip -O UTF-8 -qq 'artifacts/${{ env.ARTIFACT }}' -d dir
       - name: Setup Pages

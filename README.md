@@ -12,8 +12,8 @@ This project showcasing GitHub Actions workflows for PHP Applications.
 
 1. Clone this repository:
    ```
-   git clone https://github.com/davchs/github-workflow-example.git
-   cd github-workflow-example
+   git clone https://github.com/davchs/github-actions-example.git
+   cd github-actions-example
    ```
 
 2. Log in to GitHub Container Registry:

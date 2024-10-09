@@ -1,5 +1,7 @@
 FROM php:8.3-fpm AS base
 
+LABEL org.opencontainers.image.source https://github.com/davchs/github-actions-example
+
 RUN apt-get update && apt-get install -y \
     git \
     curl \
