@@ -1,11 +1,29 @@
-# GitHub Workflow Example
+# GitHub Actions Example
 
-This project showcasing GitHub Actions workflows for PHP Applications.
+This project showcases GitHub Actions workflows for PHP Applications.
+
+## GitHub Actions Workflows
+
+This project includes workflows for:
+
+- Running static analysis
+- Running tests
+- Deploying to different environments
+
+Check the `.github/workflows/` directory for specific workflow configurations.
+
+## Additional Resources
+
+- [GitHub Actions Workflow Syntax Documentation](https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions)
+- [Default Variables](https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/store-information-in-variables), [Contextual Information](https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/accessing-contextual-information-about-workflow-runs)
+- [Permissions](https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/controlling-permissions-for-github_token), [Managing GitHub Actions Settings](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository)
+- [Managing Environments](https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-deployments/managing-environments-for-deployment), [Using Environments](https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/using-environments-for-deployment)
+- [Deploying with GitHub Actions](https://docs.github.com/en/actions/use-cases-and-examples/deploying/deploying-with-github-actions)
 
 ## Local Prerequisites
 
-- Docker and Docker Compose installed on your machine
-- A GitHub account with access to GitHub Container Registry (ghcr.io)
+- Docker and Docker Compose installed
+- GitHub account with access to GitHub Container Registry (ghcr.io)
 - Appropriate permissions to push to ghcr.io
 
 ## Setup
@@ -20,83 +38,19 @@ This project showcasing GitHub Actions workflows for PHP Applications.
    ```
    docker login ghcr.io
    ```
-   You'll be prompted to enter your GitHub username and a Personal Access Token with the necessary permissions.
+   Enter your GitHub username and a Personal Access Token with the necessary permissions.
 
 3. Start the Docker services:
    ```
    docker compose up -d
    ```
+
 4. Install PHP dependencies and set up the application:
    ```
    docker compose run --rm cli \
-        composer install && \
-        npm install && \
-        bin/console doctrine:migrations:migrate
-   ```
-5. Restart the app services:
-   ```
-   docker compose restart app
-   ```
-6. Access the application at [http://localhost:8383](http://localhost:8383)
-
-## Project Structure
-
-- `docker-compose.yml`: Defines the services for the application
-- `docker/php/Dockerfile`: Defines the PHP images (both app and CLI)
-- `docker/bin/build.sh`: Script for building and pushing multi-arch Docker images
-
-## Building and Pushing Images
-
-The `build.sh` script in the `docker/bin/` directory is used to build multi-architecture Docker images (amd64 and arm64)
-and optionally push them to GitHub Container Registry.
-
-Before running the script, ensure you're logged in to ghcr.io (see Setup step 2).
-
-To use the script:
-
-1. To build images without pushing:
-   ```
-   docker compose up -d --build
+       composer install && \
+       npm install && \
+       bin/console doctrine:migrations:migrate
    ```
 
-2. To build images and push to ghcr.io:
-   ```
-   ./.docker/bin/push.sh
-   ```
-
-## Development
-
-- The application code should be placed in the project root.
-- Use `docker compose exec app` to run commands in the app container.
-- Use `docker compose run --rm cli` to run commands in the CLI container.
-
-## Services
-
-- `app`: The main application container
-- `cli`: A CLI container for running command-line tasks
-- `database`: PostgreSQL database service
-- `selenium`: Selenium service for running browser tests
-
-## Additional Notes
-
-- The PHP containers include Xdebug for debugging. Configure your IDE to use port 9000 for Xdebug.
-- PostgreSQL data is persisted in a Docker volume.
-
-## GitHub Actions
-
-This project includes GitHub Actions workflows for:
-
-- Running static analysis
-- Running tests
-- Deploying to different environments
-
-Check the `.github/workflows/` directory for the specific workflow configurations.
-
-## About the Author
-
-This project is maintained by [davchs](https://www.linkedin.com/in/davchs). If you have any questions, feel free to
-reach out via [GitHub](https://github.com/davchs) or [LinkedIn](https://www.linkedin.com/in/davchs).
-
-## License
-
-This project is open source and available under the [MIT License](LICENSE).
+5. Access the application at [http://localhost](http://localhost)
