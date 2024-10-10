@@ -73,7 +73,6 @@ jobs:
         with:
           path: vendor/
           key: "${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}"
-      - run: composer install
       - name: Run PHP-CS-Fixer
         run: composer run cs-check
 
@@ -92,7 +91,6 @@ jobs:
         with:
           path: vendor/
           key: "${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}"
-      - run: composer install
       - name: Run Psalm
         run: composer run psalm
 
@@ -111,9 +109,10 @@ jobs:
         with:
           path: vendor/
           key: "${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}"
-      - run: composer install
       - name: Run Unit Tests
-        run: ./vendor/bin/codecept run Unit
+        run: |
+          ./vendor/bin/codecept build
+          ./vendor/bin/codecept run Unit
 
   functional-tests:
     needs:
@@ -135,6 +134,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
+          extensions: pdo, pdo_pgsql, mbstring, exif, pcntl, bcmath, gd, zip, intl, apcu, opcache
       - name: Cache Composer dependencies
         uses: actions/cache@v4
         with:
@@ -146,7 +146,9 @@ jobs:
           php bin/console doctrine:database:create --env=test
           php bin/console doctrine:migrations:migrate --env=test --no-interaction
       - name: Run Functional Tests
-        run: ./vendor/bin/codecept run Functional
+        run: |
+          ./vendor/bin/codecept build
+          ./vendor/bin/codecept run Functional
 
   acceptance-tests:
     needs:
@@ -159,7 +161,7 @@ jobs:
         volumes:
           - ${{ github.workspace }}:/var/www/html
         ports:
-          - 80:80
+          - "80:80"
         options: --name nginx
       fpm:
         image: ghcr.io/davchs/github-actions-example/fpm:latest
@@ -210,7 +212,7 @@ jobs:
           docker exec nginx nginx -s reload
           sed -i 's|APP_ENV=dev|APP_ENV=test|g' .env
           echo "127.0.0.1 nginx database selenium" | sudo tee -a /etc/hosts
-          bin/console doctrine:database:create --env=test &&
+          bin/console doctrine:database:create --env=test
           bin/console doctrine:migrations:migrate --no-interaction -e test
       - name: Run acceptance tests
         run: |
@@ -237,7 +239,6 @@ jobs:
     environment:
       name: ${{ github.ref_type == 'tag' && 'production' || 'development' }}
       url: ${{ github.ref_type == 'tag' && 'https://davchs.dev' || 'https://dev.davchs.dev' }}
-    timeout-minutes: 60
     env:
       APP_ENV: prod
     steps:
