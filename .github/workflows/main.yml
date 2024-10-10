@@ -14,9 +14,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
-
 env:
   APP_ENV: test
 
@@ -256,8 +253,6 @@ jobs:
           composer install --no-dev --optimize-autoloader
           npm install
           npm run build
-#          rsync, CodeDeploy, etc.
-#          Variables by environment
           echo ${{ vars.USER }}
           echo ${{ vars.TARGET_PATH }} 
           echo ${{ vars.TARGET_HOST }}
