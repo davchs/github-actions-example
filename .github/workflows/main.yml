@@ -258,9 +258,9 @@ jobs:
           key: ${{ secrets.PRIVATE_SSH_KEY }}
           known_hosts: ${{ vars.TARGET_HOST }}
       - run: |
-         composer install --no-dev --optimize-autoloader
-         npm install
-         npm run build
-         echo ${{ vars.USER }}
-         echo ${{ vars.TARGET_PATH }}
-         echo ${{ vars.TARGET_HOST }}
+          composer install --no-dev --optimize-autoloader
+          npm install
+          npm run build
+          echo ${{ vars.USER }}
+          echo ${{ vars.TARGET_PATH }}
+          echo ${{ vars.TARGET_HOST }}
