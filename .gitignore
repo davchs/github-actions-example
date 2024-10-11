@@ -25,3 +25,4 @@ yarn-error.log
 /.cache/*
 !/.cache/.gitkeep
 ###< friendsofphp/php-cs-fixer ###
+/.php-cs-fixer.cache

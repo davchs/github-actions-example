@@ -21,13 +21,12 @@ modules:
               - '--no-sandbox'
               - '--ignore-certificate-errors'
           acceptInsecureCerts: true
+
     - Db:
         dsn: 'pgsql:host=database;dbname=symfony_test'
         user: 'user'
         password: 'password'
         cleanup: true
-env:
-  APP_ENV: test
 
 # Add Codeception\Step\Retry trait to AcceptanceTester to enable retries
 step_decorators:
